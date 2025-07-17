@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
 
 //import routes
 const authRoutes = require ('./routes/authRoutes');
@@ -13,5 +15,8 @@ app.use(express.json());
 
 //su dung routes
 app.use('/api/auth', authRoutes);
+
+//swagger ui routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 module.exports = app;
