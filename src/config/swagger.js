@@ -16,6 +16,18 @@ const options = {
                 description: 'Máy chủ phát triển'
             },
         ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+                }
+            }
+        },
+        security: [{
+            bearerAuth: []
+        }]
     },
     apis: [path.join(__dirname, '../routes/*.js')],
 };

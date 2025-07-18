@@ -5,6 +5,7 @@ const swaggerSpecs = require('./config/swagger');
 
 //import routes
 const authRoutes = require ('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 //khoi tao app
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 
 //su dung routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 //swagger ui routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
