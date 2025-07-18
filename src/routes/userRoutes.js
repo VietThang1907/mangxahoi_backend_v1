@@ -1,0 +1,47 @@
+const express = require('express');
+const router = express.Router();
+const { getMe } = require('../controllers/userController');
+const authMiddleware = require('../middlewares/authMiddleware');
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Users
+ *     description: API quản lý người dùng
+ */
+
+/**
+ * @swagger
+ * /api/users/me:
+ *   get:
+ *     summary: Lấy thông tin hồ sơ của người dùng đang đăng nhập
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Thông tin hồ sơ người dùng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 full_name:
+ *                   type: string
+ *       401:
+ *         description: Chưa xác thực (không có token hoặc token không hợp lệ)
+ *       404:
+ *         description: Không tìm thấy người dùng
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get('/me', authMiddleware, getMe);
+
+module.exports = router;
+
