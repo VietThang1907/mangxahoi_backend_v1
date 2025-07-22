@@ -38,6 +38,44 @@ const createPost = (req, res) => {
     });
 };
 
+const getAllPost = (req, res) => {
+    // Phan trang
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+
+    const query = `
+        SELECT 
+            p.id, p.user_id, p.category_id, p.content, p.media_url, p.media_type, p.created_at,
+            u.username, u.avatar_url, 
+            c.name as category_name
+        FROM Posts AS p
+        JOIN Users AS u ON p.user_id = u.id
+        JOIN Categories AS c ON p.category_id = c.id
+        ORDER BY p.created_at DESC
+        LIMIT ? 
+        OFFSET ?
+    `;
+    
+    db.query(query, [limit, offset], (err, results) => {
+        if (err) {
+            console.error('Lỗi truy cập DB:', err);
+            return res.status(500).json({ msg: 'Lỗi máy chủ', error: err.message });
+        }
+
+        // Không cần trả về 404 nếu không có bài đăng, trả về mảng rỗng
+        res.json({
+            posts: results,
+            pagination: {
+                page: page,
+                limit: limit,
+                total: results.length
+            }
+        });
+    });
+};
+
 module.exports = {
     createPost,
+    getAllPost,
 };
