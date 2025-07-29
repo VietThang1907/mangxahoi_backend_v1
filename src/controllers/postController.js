@@ -75,7 +75,65 @@ const getAllPost = (req, res) => {
     });
 };
 
+const getPostById = (req, res) => {
+    const postId = req.params.id; 
+    const query = `
+        SELECT 
+            p.id, p.user_id, p.category_id, p.content, p.media_url, p.media_type, p.created_at,
+            u.username, u.avatar_url,
+            c.name as category_name
+        FROM Posts AS p
+        JOIN Users AS u ON p.user_id = u.id
+        JOIN Categories AS c ON p.category_id = c.id
+        WHERE p.id = ?
+    `;
+
+    db.query(query, [postId], (err, results) => {
+        if (err) {
+            console.error('Lỗi truy cập DB:', err);
+            return res.status(500).json({ msg: 'Lỗi máy chủ', error: err.message });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ msg: 'Bài đăng không tồn tại' });
+        }
+
+        res.json(results[0]);
+    });
+};
+
+const deletePost = (req, res) => {
+    const postId = req.params.id;
+    const userId = req.user.id;
+
+    const checkQwnerQuery = 'SELECT user_id FROM Posts WHERE id = ?';
+    db.query(checkQwnerQuery, [postId], (err, results) => {
+        if (err) {
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ msg: 'Bài đăng không tồn tại.' });
+        }
+
+        const postOwnerId = results[0].user_id;
+        if (postOwnerId !== userId) {
+            return res.status(403).json({ msg: 'Bạn không có quyền xóa bài đăng này.' });
+        }
+
+        const deleteQuery = 'DELETE FROM Posts WHERE id = ?';
+        db.query(deleteQuery, [postId], (err, results) => {
+            if (err) {
+                console.error('Lỗi khi xóa bài đăng:', err);
+                return res.status(500).send('Lỗi máy chủ. Có thể do ràng buộc khóa ngoại');
+            }
+            res.json({ msg: 'Bài đăng đã được xóa thành công.' });
+        });
+    });
+};
+
 module.exports = {
     createPost,
     getAllPost,
+    getPostById,
+    deletePost,
 };

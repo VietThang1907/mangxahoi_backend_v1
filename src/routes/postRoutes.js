@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getAllPost } = require('../controllers/postController');
+const { createPost, getAllPost, getPostById, deletePost } = require('../controllers/postController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -117,4 +117,59 @@ const authMiddleware = require('../middlewares/authMiddleware');
 router.get('/', getAllPost);
 router.post('/', authMiddleware, createPost);
 
+/**
+ * @swagger
+ * /api/posts/{id}:
+ *   get:
+ *     summary: Lấy chi tiết một bài đăng theo ID
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của bài đăng
+ *     responses:
+ *       200:
+ *         description: Chi tiết bài đăng
+ *       401:
+ *         description: Chưa xác thực
+ *       404:
+ *         description: Không tìm thấy bài đăng
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get('/:id', authMiddleware, getPostById);
+
+/**
+ * @swagger
+ * /api/posts/{id}:
+ *   delete:
+ *     summary: Xóa một bài đăng (chỉ chủ sở hữu mới có quyền)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của bài đăng cần xóa
+ *     responses:
+ *       200:
+ *         description: Đã xóa bài đăng thành công
+ *       401:
+ *         description: Chưa xác thực
+ *       403:
+ *         description: Không có quyền xóa
+ *       404:
+ *         description: Không tìm thấy bài đăng
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.delete('/:id', authMiddleware, deletePost);
 module.exports = router;
