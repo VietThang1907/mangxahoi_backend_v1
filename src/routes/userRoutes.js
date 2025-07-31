@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getMe } = require('../controllers/userController');
+const { getMe, followUser, unfollowUser } = require('../controllers/userController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -43,5 +43,60 @@ const authMiddleware = require('../middlewares/authMiddleware');
  */
 router.get('/me', authMiddleware, getMe);
 
+/**
+ * @swagger
+ * /api/users/{id}/follow:
+ *   post:
+ *     summary: Theo dõi một người dùng khác
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: ID của người dùng cần theo dõi
+ *     responses:
+ *       200:
+ *         description: Đã theo dõi người dùng thành công
+ *       400:
+ *         description: Lỗi yêu cầu không hợp lệ
+ *       401:
+ *         description: Chưa xác thực
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post('/:id/follow', authMiddleware, followUser);
+
+/**
+ * @swagger
+ * /api/users/{id}/follow:
+ *   delete:
+ *     summary: Bỏ theo dõi một người dùng khác
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: ID của người dùng cần bỏ theo dõi
+ *     responses:
+ *       200:
+ *         description: Đã bỏ theo dõi người dùng thành công
+ *       400:
+ *         description: Lỗi yêu cầu không hợp lệ
+ *       401:
+ *         description: Chưa xác thực
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.delete('/:id/follow', authMiddleware, unfollowUser);
 module.exports = router;
 
