@@ -168,6 +168,61 @@ const unlikePost = (req, res) => {
     });
 };
 
+const addComment = (req, res) => {
+    const postId = req.params.id;
+    const userId = req.user.id;
+    const { content } = req.body;
+    if (!content) {
+        return res.status(400).json({ msg: 'Nội dung bình luận không được để trống.' });
+    }
+
+    const newComment = {
+        post_id: postId,
+        user_id: userId,
+        content: content
+    };
+    
+    const query = 'INSERT INTO Comments SET ?';
+    db.query(query, newComment, (err, result) => {
+        if (err) {
+            console.error('Lỗi khi thêm bình luận:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+
+        const getCommentQuery = `
+            SELECT c.id, c.content, c.created_at, u.username, u.avatar_url
+            FROM Comments AS c
+            JOIN Users AS u ON c.user_id = u.id
+            WHERE c.id = ?
+        `;
+
+        db.query(getCommentQuery, [result.insertId], (err, commentResults) => {
+            if (err) {
+                return res.status(500).send('Lỗi máy chủ');
+            }
+            res.status(201).json(commentResults[0]);
+        });
+    });
+};
+
+const getCommentsForPost = (req, res) => {
+    const postId = res.params.id;
+    const query = `
+        SELECT c.id, c.content, c.created_at, u.username, u.avatar_url
+        FROM Comments AS c
+        JOIN Users AS u ON c.user_id = u.id
+        WHERE c.post_id = ?
+        ORDER BY c.created_at DESC
+    `;
+    db.query(query, [postId], (err, results) => {
+        if (err) {
+            console.error('Lỗi khi lấy danh sách bình luận:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        res.json(results);
+    });
+};
+
 module.exports = {
     createPost,
     getAllPost,
@@ -175,4 +230,6 @@ module.exports = {
     deletePost,
     likePost,
     unlikePost,
+    addComment,
+    getCommentsForPost
 };
