@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getAllPost, getPostById, deletePost } = require('../controllers/postController');
+const { createPost, getAllPost, getPostById, deletePost, likePost, unlikePost } = require('../controllers/postController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -172,4 +172,58 @@ router.get('/:id', authMiddleware, getPostById);
  *         description: Lỗi máy chủ
  */
 router.delete('/:id', authMiddleware, deletePost);
+
+/**
+ * @swagger
+ * /api/posts/{id}/like:
+ *   post:
+ *     summary: Thích một bài đăng
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của bài đăng cần thích
+ *     responses:
+ *       200:
+ *         description: Đã thích bài đăng thành công
+ *       401:
+ *         description: Chưa xác thực
+ *       400:
+ *         description: Bạn đã thích bài đăng này rồi
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post('/:id/like', authMiddleware, likePost);
+
+/**
+ * @swagger
+ * /api/posts/{id}/like:
+ *   delete:
+ *     summary: Bỏ thích một bài đăng
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của bài đăng cần bỏ thích
+ *     responses:
+ *       200:
+ *         description: Đã bỏ thích bài đăng thành công
+ *       401:
+ *         description: Chưa xác thực
+ *       400:
+ *         description: Bạn chưa thích bài đăng này
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.delete('/:id/like', authMiddleware, unlikePost);
 module.exports = router;

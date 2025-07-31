@@ -131,9 +131,48 @@ const deletePost = (req, res) => {
     });
 };
 
+const likePost = (req, res) => {
+    const postId = req.params.id;
+    const userId = req.user.id;
+    const newLike = {
+        post_id: postId,
+        user_id: userId
+    };
+    const query = 'INSERT INTO Likes SET ?';
+    db.query(query, newLike, (err, result) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ msg: 'Bạn đã thích bài đăng này rồi.' });
+            }
+            console.error('Lỗi khi thích bài đăng:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        res.json({ msg: 'Thích bài đăng thành công.' });
+    });
+};
+
+const unlikePost = (req, res) => {
+    const postId = req.params.id;
+    const userId = req.user.id;
+    const query = 'DELETE FROM Likes WHERE user_id = ? AND post_id = ?';
+
+    db.query(query, [userId, postId], (err, result) => {
+        if (err) {
+            console.error('Lỗi khi bỏ thích bài đăng:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({msg: 'Bạn chưa thích bài đăng này.'});
+        }
+        res.json({ msg: 'Bỏ thích bài đăng thành công.' });
+    });
+};
+
 module.exports = {
     createPost,
     getAllPost,
     getPostById,
     deletePost,
+    likePost,
+    unlikePost,
 };
