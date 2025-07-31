@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getAllPost, getPostById, deletePost, likePost, unlikePost } = require('../controllers/postController');
+const { createPost, getAllPost, getPostById, deletePost, likePost, unlikePost, addComment, getCommentsForPost } = require('../controllers/postController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
