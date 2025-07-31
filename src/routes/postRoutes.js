@@ -226,4 +226,61 @@ router.post('/:id/like', authMiddleware, likePost);
  *         description: Lỗi máy chủ
  */
 router.delete('/:id/like', authMiddleware, unlikePost);
+
+/**
+ * @swagger
+ * /api/posts/{id}/comments:
+ *   post:
+ *     summary: Thêm bình luận cho một bài đăng
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của bài đăng cần bình luận
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 description: Nội dung bình luận
+ *     responses:
+ *       201:
+ *         description: Bình luận đã được thêm thành công
+ *       401:
+ *         description: Chưa xác thực
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+router.post('/:id/comments', authMiddleware, addComment);
+
+/**
+ * @swagger
+ * /api/posts/{id}/comments:
+ *   get:
+ *     summary: Lấy danh sách bình luận cho một bài đăng
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID của bài đăng cần lấy bình luận
+ *     responses:
+ *       200:
+ *         description: Danh sách bình luận
+ *       401:
+ *         description: Chưa xác thực
+ */
+router.get('/:id/comments', authMiddleware, getCommentsForPost);
+
 module.exports = router;
