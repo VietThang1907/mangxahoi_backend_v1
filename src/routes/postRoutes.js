@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { createPost, getAllPost, getPostById, deletePost, likePost, unlikePost, addComment, getCommentsForPost } = require('../controllers/postController');
+const { createPost, getAllPost, getPostById, deletePost, likePost, unlikePost, addComment, getCommentsForPost,
+    getFeed
+ } = require('../controllers/postController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -282,5 +284,62 @@ router.post('/:id/comments', authMiddleware, addComment);
  *         description: Chưa xác thực
  */
 router.get('/:id/comments', authMiddleware, getCommentsForPost);
+/**
+ * @swagger
+ * /api/posts/feed:
+ *   get:
+ *     summary: Lấy bài đăng từ người dùng mà bạn đang theo dõi
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang cần lấy
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Số lượng bài đăng trên mỗi trang
+ *     responses:
+ *       200:
+ *         description: Danh sách bài đăng từ người dùng mà bạn đang theo dõi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   content:
+ *                     type: string
+ *                   media_url:
+ *                     type: string
+ *                   media_type:
+ *                     type: string
+ *                   created_at:
+ *                     type: string
+ *                   user_id:
+ *                     type: integer
+ *                   username:
+ *                     type: string
+ *                   avatar_url:
+ *                     type: string
+ *                   likes_count:
+ *                     type: integer
+ *                   comments_count:
+ *                     type: integer
+ *       401:
+ *         description: Chưa xác thực
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get('/feed', authMiddleware, getFeed);
 
 module.exports = router;
