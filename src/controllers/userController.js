@@ -72,7 +72,30 @@ const getFollowing = (req, res) => {
         }
         res.json(results);
     });
-}
+};
+
+const updateMe = (req, res) => {
+    const userId = req.user.id;
+    const { full_name, avatar_url, bio } = req.body; 
+    const filedsToUpdate = {};
+    if (full_name) filedsToUpdate.full_name = full_name;
+    if (avatar_url) filedsToUpdate.avatar_url = avatar_url;
+    if (bio) filedsToUpdate.bio = bio;
+    if (Object.keys(filedsToUpdate).length === 0) {
+        return res.status(400).json({ msg: 'Không có trường nào để cập nhật.' });
+    }
+    const query = 'UPDATE Users SET ? WHERE id = ?';
+    db.query(query, [filedsToUpdate, userId], (err, result) => {
+        if (err) {
+            console.error('Lỗi truy cập DB:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ msg: 'Không tìm thấy người dùng.' });
+        }
+        res.json({ msg: 'Thông tin người dùng đã được cập nhật thành công.' });
+    });
+};
 
 const followUser = (req, res) => {
     const followerId = req.user.id;
@@ -123,5 +146,6 @@ module.exports = {
     unfollowUser,
     getUserById,
     getFollowers,
-    getFollowing
+    getFollowing,
+    updateMe
 };
