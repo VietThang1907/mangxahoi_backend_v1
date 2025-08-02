@@ -206,7 +206,7 @@ const addComment = (req, res) => {
 };
 
 const getCommentsForPost = (req, res) => {
-    const postId = res.params.id;
+    const postId = req.params.id;
     const query = `
         SELECT c.id, c.content, c.created_at, u.username, u.avatar_url
         FROM Comments AS c
@@ -223,6 +223,34 @@ const getCommentsForPost = (req, res) => {
     });
 };
 
+const getFeed = (req, res) => {
+    const userId = req.user.id;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const offset = (page - 1) * limit;
+    const query = `
+        SELECT
+            p.id, p.content, p.media_url, p.media_type, p.created_at,
+            u.id AS user_id, u.username, u.avatar_url,
+            (SELECT COUNT(*) FROM Likes WHERE post_id = p.id) AS likes_count,
+            (SELECT COUNT(*) FROM Comments WHERE post_id = p.id) AS comments_count
+        FROM Posts p
+        JOIN Users u ON p.user_id = u.id
+        WHERE p.user_id IN (SELECT following_id FROM Follows WHERE follower_id = ?) 
+           OR p.user_id = ?
+        ORDER BY p.created_at DESC
+        LIMIT ?
+        OFFSET ?
+    `;
+    db.query(query, [userId, userId, limit, offset], (err, results) => {
+        if (err) {
+            console.error('Lỗi khi lấy danh sách bài viết:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        res.json(results);
+    });
+}
+
 module.exports = {
     createPost,
     getAllPost,
@@ -231,5 +259,6 @@ module.exports = {
     likePost,
     unlikePost,
     addComment,
-    getCommentsForPost
+    getCommentsForPost,
+    getFeed,  
 };
