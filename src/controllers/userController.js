@@ -19,6 +19,61 @@ const getMe = (req, res) => {
     });
 };
 
+const getUserById = (req, res) => {
+    const userId = req.params.id;
+    const query = 'SELECT u.id, u.username, u.full_name, u.avatar_url, u.bio, u.created_at,(SELECT COUNT(*) FROM Follows WHERE following_id = u.id) AS followers_count,(SELECT COUNT(*) FROM Follows WHERE follower_id = u.id) AS following_count FROM Users u WHERE u.id = ?';
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            console.err('Lỗi truy cập DB:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ msg: 'Không tìm thấy người dùng.' });
+        }
+        res.json(results[0]);
+    });
+};
+
+const getFollowers = (req, res) => {
+    const userId = req.params.id;
+    const query = `
+        SELECT u.id, u.username, u.full_name, u.avatar_url 
+        FROM Users u 
+        JOIN Follows f ON u.id = f.follower_id 
+        WHERE f.following_id = ?
+    `; 
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Lỗi truy cập DB:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ msg: 'Không tìm thấy người dùng.' });
+        }
+        res.json(results);
+    });
+};
+
+const getFollowing = (req, res) => {
+    const userId = req.params.id;
+    const query = `
+        SELECT u.id, u.username, u.full_name, u.avatar_url 
+        FROM Users u 
+        JOIN Follows f ON u.id = f.following_id 
+        WHERE f.follower_id = ?
+    `;
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Lỗi truy cập DB:', err);
+            return res.status(500).send('Lỗi máy chủ');
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ msg: 'Không tìm thấy người dùng.' });
+        }
+        res.json(results);
+    });
+}
+
 const followUser = (req, res) => {
     const followerId = req.user.id;
     const followingId = req.params.id;
@@ -65,5 +120,8 @@ const unfollowUser = (req, res) =>  {
 module.exports = {
     getMe,
     followUser,
-    unfollowUser
+    unfollowUser,
+    getUserById,
+    getFollowers,
+    getFollowing
 };

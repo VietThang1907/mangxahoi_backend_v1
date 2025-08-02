@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getMe, followUser, unfollowUser } = require('../controllers/userController');
+const { getMe, getUserById, followUser, unfollowUser, getFollowers, getFollowing  } = require('../controllers/userController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -98,5 +98,133 @@ router.post('/:id/follow', authMiddleware, followUser);
  *         description: Lỗi máy chủ
  */
 router.delete('/:id/follow', authMiddleware, unfollowUser);
+
+/**
+ * @swagger
+ * /api/user/{id}:
+ * get 
+ * summary: Lấy thông tin người dùng theo ID
+ * tags: [Users]
+ * security:
+ *   - bearerAuth: []
+ * parameters:
+ *   - in: path
+ *   name: id
+ * required: true
+ * schema:
+ *   type: integer
+ *   example: 1
+ * description: ID của người dùng cần lấy thông tin
+ * responses:
+ *   200:
+*     description: Thông tin người dùng
+ *     content:
+ *       application/json:
+ *         schema:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *             username:
+ *               type: string
+ *             email:
+ *               type: string
+ *             full_name:
+ *               type: string
+ *   401:
+ *     description: Chưa xác thực (không có token hoặc token không hợp lệ)
+ *   404:
+ *     description: Không tìm thấy người dùng
+ *   500:
+ *     description: Lỗi máy chủ
+*/
+router.get('/:id', authMiddleware, getUserById);
+
+/**
+ * @swagger
+ * api/users/{id}/followers:
+ * get 
+ * summary: Lấy danh sách người theo dõi của người dùng
+ * tags: [Users]
+ * security:
+ *  - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ *  type: integer
+ * example: 1
+ * description: ID của người dùng cần lấy danh sách người theo dõi
+ * responses:
+ * 200:
+ * description: Danh sách người theo dõi
+ * content:
+ * application/json:
+ * schema:
+ * type: array
+ * items:
+ * type: object
+ * properties:
+ * id:
+ * type: integer
+ * username:
+ * type: string
+ * full_name:
+ * type: string
+ * avatar_url:
+ *  type: string
+ * 401:
+ * description: Chưa xác thực (không có token hoặc token không hợp lệ)
+ * 404:
+ * description: Không tìm thấy người dùng
+ * 500:
+ * description: Lỗi máy chủ
+*/
+router.get('/:id/followers', authMiddleware, getFollowers);
+
+/**
+ * @swagger
+ * /api/users/{id}/following:
+ *   get:
+ *  summary: Lấy danh sách người dùng mà người dùng đang theo dõi
+ *   tags: [Users]
+ *  security:
+ *   - bearerAuth: []
+ *  parameters:
+ *  - in: path
+ *  name: id
+ *  required: true
+ *  schema:
+ *  type: integer
+ *  example: 1
+ *  description: ID của người dùng cần lấy danh sách người đang theo dõi
+ *  responses:
+ *  200:
+ *  description: Danh sách người dùng mà người dùng đang theo dõi
+ *  content:
+ *  application/json:
+ *  schema:
+ * type: array
+ * items:
+ *  type: object
+ *  properties:
+ *   id:
+ *    type: integer
+ *   username:
+ *    type: string
+ *   full_name:
+ *    type: string
+ *   avatar_url:
+ *    type: string
+ *  401:
+ *  description: Chưa xác thực (không có token hoặc token không hợp lệ)
+ *  404:
+ * description: Không tìm thấy người dùng
+ *  500:
+ * description: Lỗi máy chủ
+ */
+router.get('/:id/following', authMiddleware, getFollowing);
+
 module.exports = router;
 
