@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getMe, getUserById, followUser, unfollowUser, getFollowers, getFollowing  } = require('../controllers/userController');
+const { getMe, getUserById, followUser, unfollowUser, getFollowers, getFollowing, updateMe } = require('../controllers/userController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -226,5 +226,63 @@ router.get('/:id/followers', authMiddleware, getFollowers);
  */
 router.get('/:id/following', authMiddleware, getFollowing);
 
+/**
+ * @swagger
+ * /api/users/me:
+ * put:
+ *   summary: Cập nhật thông tin người dùng
+ * tags: [Users]
+ * security:
+ *   - bearerAuth: []
+ * requestBody:
+ *   required: true
+ *   content:
+ *     application/json:
+ *       schema:
+ *         type: object
+ *         properties:
+ *           full_name:
+ *             type: string
+ *           avatar_url:
+ *             type: string
+ *           bio:
+ *             type: string
+ * example:
+ *   full_name: "Nguyen Van A"
+ *   avatar_url: "https://example.com/avatar.jpg"
+ *   bio: "Đây là tiểu sử của tôi."
+ * responses:
+ * 200: 
+ * description: Thông tin người dùng đã được cập nhật thành công
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ *  properties:
+ *   msg:
+ *    type: string
+ *  example: "Thông tin người dùng đã được cập nhật thành công."
+ * 400:     
+ * description: Không có trường nào để cập nhật
+ * content:
+ * application/json:
+ * schema:
+ *  type: object
+ *  properties:
+ *   msg:
+ *    type: string
+ *  example: "Không có trường nào để cập nhật."
+ * 401:
+ * description: Chưa xác thực (không có token hoặc token không hợp lệ)
+ * content:
+ * application/json:    
+ * schema:
+ * type: object
+ * properties:
+ *   msg:
+ * type: string
+ * example: "Chưa xác thực."
+ */
+router.put('/me', authMiddleware, updateMe);
 module.exports = router;
 
