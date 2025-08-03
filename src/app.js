@@ -7,6 +7,7 @@ const swaggerSpecs = require('./config/swagger');
 const authRoutes = require ('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const postRoutes = require('./routes/postRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 
 //khoi tao app
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/search', searchRoutes);
 
 //swagger ui routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
