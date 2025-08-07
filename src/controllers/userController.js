@@ -24,7 +24,7 @@ const getUserById = (req, res) => {
     const query = 'SELECT u.id, u.username, u.full_name, u.avatar_url, u.bio, u.created_at,(SELECT COUNT(*) FROM Follows WHERE following_id = u.id) AS followers_count,(SELECT COUNT(*) FROM Follows WHERE follower_id = u.id) AS following_count FROM Users u WHERE u.id = ?';
     db.query(query, [userId], (err, results) => {
         if (err) {
-            console.err('Lỗi truy cập DB:', err);
+            console.error('Lỗi truy cập DB:', err);
             return res.status(500).send('Lỗi máy chủ');
         }
         if (results.length === 0) {
@@ -116,10 +116,41 @@ const followUser = (req, res) => {
             if (err.code === 'ER_DUP_ENTRY') {
                 return res.status(400).json({ msg: 'Bạn đã theo dõi người dùng này rồi.' });
             }
-            console.error('Lỗi truy cập DB:', err);
+            console.error('Lỗi khi theo dõi:', err);
             return res.status(500).send('Lỗi máy chủ');
         }
+        
+        // Gửi response thành công
         res.json({ msg: 'Đã theo dõi người dùng thành công.' });
+        
+        // Xử lý notification (không ảnh hưởng đến response)
+        const notification = { 
+            recipient_id: followingId, 
+            sender_id: followerId, 
+            type: 'follow' 
+        };
+        db.query('INSERT INTO Notifications SET ?', notification, (err, notifResult) => {
+            if (err) {
+                console.error('Lỗi khi tạo thông báo:', err);
+                return;
+            }
+            // Gửi sự kiện qua socket (nếu có socket.io)
+            try {
+                const io = req.app.get('socketio');
+                const getUser = req.app.get('getUser');
+                if (io && getUser) {
+                    const receiver = getUser(followingId);
+                    if (receiver) {
+                        io.to(receiver.socketId).emit('getNotification', {
+                            senderId: followerId,
+                            type: 'follow',
+                        });
+                    }
+                }
+            } catch (socketError) {
+                console.error('Lỗi khi gửi socket notification:', socketError);
+            }
+        });
     });
 };
 
