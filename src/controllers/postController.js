@@ -139,6 +139,7 @@ const likePost = (req, res) => {
         user_id: userId
     };
     const query = 'INSERT INTO Likes SET ?';
+    
     db.query(query, newLike, (err, result) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') {
@@ -147,7 +148,49 @@ const likePost = (req, res) => {
             console.error('Lỗi khi thích bài đăng:', err);
             return res.status(500).send('Lỗi máy chủ');
         }
+        
+        // Gửi response thành công
         res.json({ msg: 'Thích bài đăng thành công.' });
+        
+        // Xử lý notification (không ảnh hưởng đến response)
+        const getPostOwnerQuery = 'SELECT user_id FROM Posts WHERE id = ?';
+        db.query(getPostOwnerQuery, [postId], (err, posts) => {
+            if (err || posts.length === 0) return;
+            const recipientId = posts[0].user_id;
+
+            // Không gửi thông báo nếu tự like bài của mình
+            if (userId !== recipientId) {
+                const notification = { 
+                    recipient_id: recipientId, 
+                    sender_id: userId, 
+                    post_id: postId, 
+                    type: 'like' 
+                };
+                db.query('INSERT INTO Notifications SET ?', notification, (err, notifResult) => {
+                    if (err) {
+                        console.error('Lỗi khi tạo thông báo:', err);
+                        return;
+                    }
+                    // Gửi sự kiện qua socket (nếu có socket.io)
+                    try {
+                        const io = req.app.get('socketio');
+                        const getUser = req.app.get('getUser');
+                        if (io && getUser) {
+                            const receiver = getUser(recipientId);
+                            if (receiver) {
+                                io.to(receiver.socketId).emit('getNotification', {
+                                    senderId: userId, 
+                                    type: 'like',
+                                    postId: postId,
+                                });
+                            }
+                        }
+                    } catch (socketError) {
+                        console.error('Lỗi khi gửi socket notification:', socketError);
+                    }
+                });
+            }
+        });
     });
 };
 
@@ -172,6 +215,7 @@ const addComment = (req, res) => {
     const postId = req.params.id;
     const userId = req.user.id;
     const { content } = req.body;
+    
     if (!content) {
         return res.status(400).json({ msg: 'Nội dung bình luận không được để trống.' });
     }
@@ -189,6 +233,7 @@ const addComment = (req, res) => {
             return res.status(500).send('Lỗi máy chủ');
         }
 
+        // Lấy thông tin comment vừa tạo để trả về
         const getCommentQuery = `
             SELECT c.id, c.content, c.created_at, u.username, u.avatar_url
             FROM Comments AS c
@@ -198,9 +243,52 @@ const addComment = (req, res) => {
 
         db.query(getCommentQuery, [result.insertId], (err, commentResults) => {
             if (err) {
+                console.error('Lỗi khi lấy thông tin comment:', err);
                 return res.status(500).send('Lỗi máy chủ');
             }
+            
+            // Gửi response thành công
             res.status(201).json(commentResults[0]);
+            
+            // Xử lý notification (không ảnh hưởng đến response)
+            const getPostOwnerQuery = 'SELECT user_id FROM Posts WHERE id = ?';
+            db.query(getPostOwnerQuery, [postId], (err, posts) => {
+                if (err || posts.length === 0) return;
+                const recipientId = posts[0].user_id;
+
+                // Không gửi thông báo nếu tự comment bài của mình
+                if (userId !== recipientId) {
+                    const notification = { 
+                        recipient_id: recipientId, 
+                        sender_id: userId, 
+                        type: 'comment', 
+                        post_id: postId 
+                    };
+                    db.query('INSERT INTO Notifications SET ?', notification, (err, notifResult) => {
+                        if (err) {
+                            console.error('Lỗi khi tạo thông báo:', err);
+                            return;
+                        }
+                        // Gửi sự kiện qua socket (nếu có socket.io)
+                        try {
+                            const io = req.app.get('socketio');
+                            const getUser = req.app.get('getUser');
+                            if (io && getUser) {
+                                const receiver = getUser(recipientId);
+                                if (receiver) {
+                                    io.to(receiver.socketId).emit('getNotification', {
+                                        senderId: userId,
+                                        type: 'comment',
+                                        postId: postId,
+                                    });
+                                }
+                            }
+                        } catch (socketError) {
+                            console.error('Lỗi khi gửi socket notification:', socketError);
+                        }
+                    });
+                }
+            });
         });
     });
 };

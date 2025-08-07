@@ -3,6 +3,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 const path = require('path');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 //import routes
 const authRoutes = require ('./routes/authRoutes');
@@ -27,6 +28,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 //swagger ui routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
